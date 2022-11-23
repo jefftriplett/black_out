@@ -83,8 +83,7 @@ black has been initiated? (I'm a bot 🤖)
         util.comment_on_pr(repo_full_name, issue_number, message)
         raise e
 
-    needs_black = util.check_black(".")
-    if needs_black:
+    if needs_black := util.check_black("."):
         util.exec_command(["black", "."])
         commit_title, commit_body = util.commit_changes(issue_number)
         util.exec_command(["git", "push", "origin", branch_name])
@@ -147,10 +146,8 @@ def black_pr_task(event_data):
 
     blackened_files = []
     for path in files_affected:
-        needs_black = util.check_black(path)
-        if needs_black:
-            commands = ["black"]
-            commands.extend([path])
+        if needs_black := util.check_black(path):
+            commands = ["black", *[path]]
             util.exec_command(commands)
             with open(path, "rb") as reader:
                 encoded = base64.b64encode(reader.read())
@@ -162,15 +159,12 @@ def black_pr_task(event_data):
 
         message = f"🐍🌚🤖 @{pr_author}, I've formatted these files using `black`:"
         for b in blackened_files:
-            message = message + f"\n - {b}"
+            message = f"{message}\n - {b}"
         message = message + "\n (I'm a bot 🤖)"
-        util.comment_on_pr(repo_full_name, pr_number, message)
-        util.remove_label(repo_full_name, pr_number, "black out")
-
     else:
         message = "🐍🌚🤖 PR is already black! Good job!"
-        util.comment_on_pr(repo_full_name, pr_number, message)
-        util.remove_label(repo_full_name, pr_number, "black out")
+    util.comment_on_pr(repo_full_name, pr_number, message)
+    util.remove_label(repo_full_name, pr_number, "black out")
 
     util.exec_command(["git", "stash"])
     util.exec_command(["git", "checkout", "master"])

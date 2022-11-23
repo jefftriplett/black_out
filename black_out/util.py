@@ -23,11 +23,8 @@ def checkout_branch(branch_name):
 
 def check_black(source_path):
     if source_path.lower().endswith(".py"):
-        commands = ["black", "--check"]
-        commands.extend([source_path])
-        result = subprocess.call(commands)
-        return result
-
+        commands = ["black", "--check", *[source_path]]
+        return subprocess.call(commands)
     return False
 
 
